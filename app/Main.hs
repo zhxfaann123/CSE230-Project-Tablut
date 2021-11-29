@@ -4,6 +4,7 @@ import Type
 
 import Lib
 import Board
+import Draw
 import Data.List
 import Data.Monoid
 
@@ -35,16 +36,6 @@ ui =
          , str " "
          ]
          
-globalDefault :: Attr
-globalDefault = white `on` blue
-
-theMap :: AttrMap
-theMap = attrMap globalDefault
-    [ (foundAttr,               white `on` green)
-    , (foundFgOnly,             fg red)
-    , (general,                 yellow `on` black)
-    , (general2,   fg cyan)
-    ]
 
 foundAttr, foundFgOnly, general, general2 :: AttrName
 foundAttr = attrName "foundFull"
@@ -61,5 +52,5 @@ app =
         , appChooseCursor = neverShowCursor
         }
 
-main :: IO ()
-main = defaultMain app ()
+main :: IO Game
+main = defaultMain app initGame

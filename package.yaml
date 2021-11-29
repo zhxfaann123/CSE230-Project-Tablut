@@ -21,7 +21,10 @@ description:         Please see the README on GitHub at <https://github.com/zhxf
 
 dependencies:
 - base >= 4.7 && < 5
-
+- matrix
+- brick
+- vty
+- microlens
 library:
   source-dirs: src
 
@@ -34,10 +37,11 @@ executables:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
+    - matrix
     - Tablut
     - brick
     - vty
-    - matrix
+
 tests:
   Tablut-test:
     main:                Spec.hs
@@ -48,3 +52,6 @@ tests:
     - -with-rtsopts=-N
     dependencies:
     - Tablut
+    - brick
+    - vty
+    - matrix

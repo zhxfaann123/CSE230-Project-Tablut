@@ -1,8 +1,8 @@
 module Type where
-
 import Data.Matrix
-                   
- data Game = Game
+
+-- The state of the game. 
+data Game = Game
     {
       _interface :: InterfaceType
     , _turn      :: Player
@@ -29,7 +29,13 @@ type Board = Matrix Chess
 data InterfaceType = Main_Page  | Game_Page
 
 --  The two players
-data Player   = P_Black | P_While
+data Player   = P_Black | P_White
+
+boardHeight :: Int
+boardHeight = 9
+
+boardWidth :: Int
+boardWidth = 9
 
 --  The initial state of the board
 boardStart :: Board
@@ -44,7 +50,19 @@ boardStart = fromLists [[Empty, Empty, Empty, Black, Black, Black, Empty, Empty,
                        ,[Empty, Empty, Empty, Black, Black, Black, Empty, Empty, Empty]
                        ]
 
-                  
+-- >>> boardStart                 
+-- ┌                                                       ┐
+-- │ Empty Empty Empty Black Black Black Empty Empty Empty │
+-- │ Empty Empty Empty Empty Black Empty Empty Empty Empty │
+-- │ Empty Empty Empty Empty White Empty Empty Empty Empty │
+-- │ Black Empty Empty Empty White Empty Empty Empty Black │
+-- │ Black Black White White  King White White Black Black │
+-- │ Black Empty Empty Empty White Empty Empty Empty Black │
+-- │ Empty Empty Empty Empty White Empty Empty Empty Empty │
+-- │ Empty Empty Empty Empty Black Empty Empty Empty Empty │
+-- │ Empty Empty Empty Black Black Black Empty Empty Empty │
+-- └                                                       ┘
+--
 
 -- The initial state of the game
 initGame :: Game
@@ -56,5 +74,5 @@ initGame = Game
     , _winner    = Nothing
     , _AI        = False
     , _board     = boardStart
-    , _selected  = False
+    , _selected  = Nothing
     }     

@@ -4,7 +4,7 @@ import Type
 import qualified Brick.Widgets.Center as C
 import qualified Brick.Widgets.Border as B
 import qualified Brick.Widgets.Border.Style as BS
-import Brick.Widgets.Core (str)
+import Brick.Widgets.Core (str, clickable)
 import Brick.Types (Widget)
 import Brick (AttrName, AttrMap, App(..), withBorderStyle,
  vBox, hBox, attrName, attrMap, withAttr,
@@ -12,9 +12,11 @@ import Brick (AttrName, AttrMap, App(..), withBorderStyle,
 import qualified Graphics.Vty.Attributes as V
 import Lens.Micro ((^.))
 
-type Name = ()
 
-drawUi :: Game -> [Widget ()]
+
+-- >>> 
+
+drawUi :: Game -> [Widget Name]
 drawUi g = [drawGrid g]
 
 drawBoard :: [Widget ()]
@@ -32,14 +34,17 @@ drawGrid g = withBorderStyle BS.unicodeBold
   $ vBox rows
   where
     rows         = [hBox $ cellsInRow r | r <- [boardHeight, boardHeight-1..1]]
-    cellsInRow y = [drawChess $ getElem x y b | x <- [1..boardWidth]]
+    cellsInRow y = [drawChess (getElem x y b) x y| x <- [1..boardWidth]]
     b = _board g
 
-drawChess :: Chess -> Widget Name
-drawChess Black = withAttr blackChessAttr nonKingWidge
-drawChess White = withAttr whiteChessAttr nonKingWidge
-drawChess Empty = withAttr emptyChessAttr nonKingWidge
-drawChess King  = withAttr kingChessAttr  kingWidge
+drawChess :: Chess -> Int -> Int -> Widget Name
+drawChess Black x y =  withAttr blackChessAttr $ clickable (ChessName (x,y)) nonKingWidge
+drawChess White x y =  withAttr whiteChessAttr $ clickable (ChessName (x,y)) nonKingWidge
+drawChess Empty x y =  withAttr emptyChessAttr  nonKingWidge
+drawChess King  x y =  withAttr kingChessAttr  $ clickable (ChessName (x,y)) kingWidge
+
+-- cordToName :: Int -> Int -> Name
+-- cordToName x y = show x ++ show y
 
 theMap :: AttrMap
 theMap = attrMap V.defAttr

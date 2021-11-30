@@ -20,16 +20,36 @@ type Cord = (Int, Int)
 type Move = (Cord, Cord)
 
 --  The 3 kinds of chess plus an empty kind
-data Chess = Black | White | Empty | King deriving (Show)
+data Chess = Black | White | Empty | King deriving (Show, Eq)
 
 --  The board is represented by a matrix of which the element is Chess
 type Board = Matrix Chess
 
+ -- instance Monad Board where
+  
 --  The two layer of interface
 data InterfaceType = Main_Page  | Game_Page
 
 --  The two players
 data Player   = P_Black | P_White
+
+--  The types of name
+data Name = ButtonName String | ChessName (Int, Int)
+
+--  all kinds of Cell
+data Cell = Throne | NonThrone | UpThrone | DownThrone | RightThrone | LeftThrone | OutOfBoard
+
+cellType :: Cord -> Cell
+cellType (5,5)   = Throne
+cellType (5,6)   = RightThrone
+cellType (5,4)   = LeftThrone
+cellType (4,5)   = UpThrone
+cellType (6,5)   = DownThrone
+cellType (x,y)      = if x >= 1 && x <= 9 && y >= 1 && y <= 9 then NonThrone 
+                      else OutOfBoard
+
+sideThroneList :: [Cord]
+sideThroneList = [(5,4), (5,6), (4,5), (6,5)]
 
 boardHeight :: Int
 boardHeight = 9

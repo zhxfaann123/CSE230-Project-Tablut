@@ -25,6 +25,7 @@ dependencies:
 - brick
 - vty
 - microlens
+- microlens-th
 library:
   source-dirs: src
 

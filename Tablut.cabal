@@ -36,6 +36,11 @@ library
       src
   build-depends:
       base >=4.7 && <5
+    , brick
+    , matrix
+    , microlens
+    , microlens-th
+    , vty
   default-language: Haskell2010
 
 executable Tablut-exe
@@ -50,6 +55,8 @@ executable Tablut-exe
     , base >=4.7 && <5
     , brick
     , matrix
+    , microlens
+    , microlens-th
     , vty
   default-language: Haskell2010
 
@@ -64,4 +71,9 @@ test-suite Tablut-test
   build-depends:
       Tablut
     , base >=4.7 && <5
+    , brick
+    , matrix
+    , microlens
+    , microlens-th
+    , vty
   default-language: Haskell2010

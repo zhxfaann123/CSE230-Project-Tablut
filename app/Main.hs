@@ -5,6 +5,8 @@ import Type
 import Lib
 import Board
 import Draw
+import Event
+
 import Data.List
 import Data.Monoid
 
@@ -14,7 +16,7 @@ import Brick.Widgets.Core
 import Brick.Util
 import Brick.AttrMap
 
-import Graphics.Vty
+import Graphics.Vty as V
 
 ui :: Widget n
 ui =
@@ -43,14 +45,22 @@ foundFgOnly = attrName "foundFgOnly"
 general = attrName "general"
 general2 = attrName "general2"
 
-app :: App Game e ()
+app :: App Game e Name
 app =
     App { appDraw = drawUi 
-        , appHandleEvent = resizeOrQuit
+        , appHandleEvent = appEvent
         , appStartEvent = return
         , appAttrMap = const theMap
         , appChooseCursor = neverShowCursor
         }
 
-main :: IO Game
-main = defaultMain app initGame
+main :: Game -> IO Game
+-- main = defaultMain app initGame
+main g = do
+    let buildVty = do
+          v <- V.mkVty =<< V.standardIOConfig
+          V.setMode (V.outputIface v) V.Mouse True
+          return v
+
+    initialVty <- buildVty
+    customMain initialVty buildVty Nothing app g

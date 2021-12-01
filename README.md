@@ -16,3 +16,15 @@ We will be implementing several functions beside the game itself. Tentative func
 3. Notification for next move
 4. (some AI players?)
 
+
+**Mile Stone Update**
+
+*Progress*:   
+>We've finished the logic part (Rules, Winning condition, etc.) of the game
+
+*Challenges*: 
+>Mostly about the graphics and the interface. Without the proper support of some high-level API for certain functions, we are invastigating the Vty/Brick library to               build desired graphics and interface from low-level API.
+
+*Future Plans*: 
+>We are working hard on graphics and interface. After that, we will be writing test suits to verify the correctness of the logic. The AI part will be implemented if time permits.
+

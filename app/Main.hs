@@ -54,13 +54,13 @@ app =
         , appChooseCursor = neverShowCursor
         }
 
-main :: Game -> IO Game
+main :: IO Game
 -- main = defaultMain app initGame
-main g = do
+main = do
     let buildVty = do
           v <- V.mkVty =<< V.standardIOConfig
           V.setMode (V.outputIface v) V.Mouse True
           return v
 
     initialVty <- buildVty
-    customMain initialVty buildVty Nothing app g
+    customMain initialVty buildVty Nothing app initGame

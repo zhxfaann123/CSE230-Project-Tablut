@@ -30,6 +30,7 @@ library
       Event
       Lib
       Type
+      Utils
   other-modules:
       Paths_Tablut
   hs-source-dirs:

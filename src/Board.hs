@@ -2,9 +2,10 @@ module Board where
 
 import Type
 import Data.Matrix
+import Utils
 import Prelude hiding (Right, Left)
 
-data Direction = Left | Right | Up | Down | InValid deriving(Eq)
+data Direction = Left | Right | Up | Down | InValid deriving(Eq, Show)
 
 type Over = (Bool, Player)
 
@@ -15,22 +16,22 @@ type Over = (Bool, Player)
 --       return a = BoardC a
 
 -- Assuming the move is legal
-move :: Move -> Board -> Board
-move m@(from@(x1, y1), to@(x2, y2)) b = removeCaptured to
-       $ setElem theChess to 
-       $ setElem Empty from b
-       where theChess = getElem x1 y1 b
+makeMove :: Move -> Board -> Board
+makeMove m@(from@(x1, y1), to@(x2, y2)) b = removeCaptured to
+       $ setElem chess to 
+       $ setElem Empty from 
+       $ b
+       where chess = getChessFromBoard b from
 
 -- Given the coordinate, remove the captured chesses as the consequence of the move.
 removeCaptured :: Cord -> Board -> Board
 removeCaptured c@(x,y) b = removeListCord b cordListToRemove
-       where cordListToRemove =  [(n, boolCaptured n) | n <- allNeighbourCord] 
-             boolCaptured     =  isCaptured chess b 
-             chess            =  getElem x y b 
+       where cordListToRemove =  [(n, isCaptured b n) | n <- allNeighbourCord] 
+             -- chess            =  getElem x y b 
              cell             =  cellType c
              allNeighbourCord =  getNeighbourCord c
 
--- Remove the Chess at Cord, iff the bool value associated with Cord is True.
+-- Remove the Chess at Cord from the board, iff the bool value associated with Cord is True.
 removeListCord :: Board -> [(Cord, Bool)] -> Board
 removeListCord b [] = b
 removeListCord b ((c, True):xs)  =  removeListCord b' xs where b' = setElem Empty c b
@@ -38,19 +39,21 @@ removeListCord b ((c, False):xs) =  removeListCord b  xs
 
 -- Judge a chess is captured
 -- case1 : non-King chess is captured by two hositile chesses
-isCaptured :: Chess -> Board -> Cord -> Bool
-isCaptured Empty  _ _ = False
-isCaptured King  b c = case cell of Throne      -> getElem 4 5 b == Black && getElem 6 5 b == Black && getElem 5 4 b == Black && getElem 5 6 b == Black
-                                    UpThrone    -> getElem 4 4 b == Black && getElem 4 6 b == Black && getElem 3 5 b == Black
-                                    DownThrone  -> getElem 6 4 b == Black && getElem 6 6 b == Black && getElem 7 5 b == Black
-                                    RightThrone -> getElem 4 6 b == Black && getElem 6 6 b == Black && getElem 5 7 b == Black
-                                    LeftThrone  -> getElem 4 4 b == Black && getElem 5 4 b == Black && getElem 6 4 b == Black
-                                    otherwise   -> isEnclosed King b c 
-                     where cell = cellType c 
-isCaptured chess     b c = case1 || case2
-                     where   case1 = isEnclosed chess b c                     -- Two Opposide sides of enemy
-                             case2 = isEnclosedByThrone chess b c && isThroneEmpty
-                             isThroneEmpty = getElem 5 5 b == Empty
+isCaptured :: Board -> Cord -> Bool
+isCaptured b c = case chess of Empty -> False
+                               King -> kingsCondition
+                               otherwise -> case1 || case2
+       where  case1 = isEnclosed chess b c                     -- Two Opposide sides of enemy
+              case2 = isEnclosedByThrone chess b c && isThroneEmpty
+              isThroneEmpty = getElem 5 5 b == Empty
+              chess = getChessFromBoard b c
+              cell = cellType c              
+              kingsCondition = case cell of Throne      -> getElem 4 5 b == Black && getElem 6 5 b == Black && getElem 5 4 b == Black && getElem 5 6 b == Black
+                                            UpThrone    -> getElem 4 4 b == Black && getElem 4 6 b == Black && getElem 3 5 b == Black
+                                            DownThrone  -> getElem 6 4 b == Black && getElem 6 6 b == Black && getElem 7 5 b == Black
+                                            RightThrone -> getElem 4 6 b == Black && getElem 6 6 b == Black && getElem 5 7 b == Black
+                                            LeftThrone  -> getElem 4 4 b == Black && getElem 5 3 b == Black && getElem 6 4 b == Black
+                                            otherwise   -> isEnclosed King b c 
 
 isKingOnThrone :: Board -> Bool
 isKingOnThrone b = getElem 5 5 b == King
@@ -77,6 +80,7 @@ isEnclosedByThrone chess b c@(x,y) = upThrone || downThrone || leftThrone || rig
                                    downChess  = getElem (x+1) y b
                                    leftChess  = getElem x (y-1) b
                                    rightChess = getElem x (y+1) b                               
+
 
 -- True if the chess in enclosed by two enemy
 -- Note: Since the empty case is ruled out by `isCaptured`, we consider `Black` and `White/King` cases only here 
@@ -137,26 +141,35 @@ isLegalMove m@((from_x,from_y), (to_x, to_y)) board = (not (notKing && goThrone)
                                                         Left    -> foldr (&&) True cellList3
                                                         Right   -> foldr (&&) True cellList4 
                 where  d         = getMoveDirection m
-                       cellList1 = (==Empty) <$> toList (submatrix (from_x+1) to_x to_y from_y board) 
-                       cellList2 = (==Empty) <$> toList (submatrix to_x (from_x+1) to_y from_y board) 
-                       cellList3 = (==Empty) <$> toList (submatrix from_x to_x to_y (from_y+1) board) 
+                       cellList1 = (==Empty) <$> toList (submatrix to_x (from_x-1) to_y from_y board) 
+                       cellList2 = (==Empty) <$> toList (submatrix (from_x+1) to_x to_y from_y board) 
+                       cellList3 = (==Empty) <$> toList (submatrix from_x to_x to_y (from_y-1) board) 
                        cellList4 = (==Empty) <$> toList (submatrix from_x to_x (from_y+1) to_y board) 
                        notKing   = getElem from_x from_y board /= King
                        goThrone  = to_x == 5 && to_y == 5
 
 -- Judge the move direction by the given move
 getMoveDirection :: Move -> Direction
-getMoveDirection ((from_x, from_y), (to_x, to_y)) = if      from_x == to_x && from_y >  to_y then Right
-                                                    else if from_x == to_x && from_y <  to_y then Left
+getMoveDirection ((from_x, from_y), (to_x, to_y)) = if      from_x == to_x && from_y >  to_y then Left
+                                                    else if from_x == to_x && from_y <  to_y then Right
                                                     else if from_x <  to_x && from_y == to_y then Down
                                                     else if from_x >  to_x && from_y == to_y then Up
                                                     else InValid
+
+-- >>> getMoveDirection ((4,5),(4,4))
+-- Right
+--
+
+-- >>> getMoveDirection ((1,1),(2,1))
+-- Down
+--
+
 -- Judge if the game is over (the king captured or escaped)
 isOver :: Board -> Over
 isOver b = if      kingCaptured then (True, P_Black)
            else if kingEscaped  then (True, P_White)
            else    (False, P_Black)
-       where kingCaptured = foldr (||) False $ (==King) <$> toList b
+       where kingCaptured = not $ foldr (||) False $ (==King) <$> toList b
              kingEscaped  = foldr (||) False $ (==King) <$> boardEdge b
 
 -- get all chesses that lie on the edge of the board (to check if the king escaped)
@@ -175,4 +188,19 @@ isBlack _     = False
 isThrone :: Cord -> Bool
 isThrone = undefined
 
+
+---- Abandoned ----
+--isCaptured :: Chess -> Board -> Cord -> Bool
+--isCaptured Empty  _ _ = False
+--isCaptured King  b c = case cell of Throne      -> getElem 4 5 b == Black && getElem 6 5 b == Black && getElem 5 4 b == Black && getElem 5 6 b == Black
+--                                    UpThrone    -> getElem 4 4 b == Black && getElem 4 6 b == Black && getElem 3 5 b == Black
+--                                    DownThrone  -> getElem 6 4 b == Black && getElem 6 6 b == Black && getElem 7 5 b == Black
+--                                    RightThrone -> getElem 4 6 b == Black && getElem 6 6 b == Black && getElem 5 7 b == Black
+--                                    LeftThrone  -> getElem 4 4 b == Black && getElem 5 3 b == Black && getElem 6 4 b == Black
+--                                    otherwise   -> isEnclosed King b c 
+--                     where cell = cellType c 
+--isCaptured chess     b c = case1 || case2
+--                     where   case1 = isEnclosed chess b c                     -- Two Opposide sides of enemy
+--                             case2 = isEnclosedByThrone chess b c && isThroneEmpty
+--                             isThroneEmpty = getElem 5 5 b == Empty
 

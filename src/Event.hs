@@ -17,10 +17,12 @@ appEvent :: Game -> BrickEvent Name e -> EventM Name (Next Game)
 appEvent s (VtyEvent (V.EvKey (V.KChar '1') [])) = continue $ modifyGameMessage s
 -- appEvent _ (VtyEvent (V.EvMouseDown buttonName V.BLeft [] _))   = halt s
 appEvent s (MouseDown (ChessCord cord) _ _ loc) = continue $ handleClickChess s cord
-appEvent s (MouseDown ButtonRestart _ _ loc) = continue $ initGame
-appEvent s (MouseUp _ _ _) = continue s 
-appEvent s (VtyEvent (V.EvKey V.KEsc []))= halt s
-appEvent s _ = halt s
+appEvent s (MouseDown ButtonRestart _ _ loc)    = continue $ initGame
+appEvent s (MouseDown ButtonExit _ _ loc)       = halt s
+appEvent s (MouseDown ButtonAI _ _ loc)         = undefined
+appEvent s (MouseUp _ _ _)                      = continue s 
+appEvent s (VtyEvent (V.EvKey V.KEsc []))       = halt s
+appEvent s _                                    = continue s
 
 
 handleClickChess :: Game -> Cord -> Game
@@ -49,7 +51,7 @@ handleSelectChess s cord = Game {
                         , _info      = new_info   
                   }
                   where new_select = if chessOfTurn s cord then Just cord else Nothing
-                        new_info   = if chessOfTurn s cord then Just "New Chess Selected" else Just "You cannot Select the chess of your enemy"
+                        new_info   = if chessOfTurn s cord then Just "New Chess Selected" else Just "It's not YOUR TURN!"
                         --chess      = getChessFromGame s cord
                         -- cord       = mapStringToCord str
 
@@ -65,15 +67,20 @@ handleTryMove s target_cord = Game {
                         , _selected  = Nothing
                         , _info      = new_info   
                   }
-                  where new_board  = if isLegalMove move old_board then makeMove move old_board else old_board
+                  where new_board  = if isLegal then makeMove move old_board else old_board
                         new_over   = fst $ isOver new_board
                         new_winner = if new_over then Just (snd $ isOver new_board) else Nothing
-                        new_turn   = if old_turn == P_Black then P_White else P_Black
-                        new_info   = Just "nothing"
+                        new_turn   = if isLegal then 
+                                          if old_turn == P_Black then P_White else P_Black
+                                     else old_turn
+                        new_info   = if isLegal then 
+                                          if new_over then Just ((show $ snd $ isOver new_board) ++ " Wins!") else Nothing
+                                     else Just "This is not a legal move"
                         old_turn   = _turn s
                         old_board  = _board s 
                         Just selected_cord = _selected s
                         move       = (selected_cord, target_cord)
+                        isLegal    = isLegalMove move old_board
 
                         
 -- If the chess belongs to the turn of the player, select this chess. otherwise 

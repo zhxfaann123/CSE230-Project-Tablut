@@ -4,18 +4,20 @@ import Type
 import qualified Brick.Widgets.Center as C
 import qualified Brick.Widgets.Border as B
 import qualified Brick.Widgets.Border.Style as BS
-import Brick.Widgets.Core (str, clickable, padLeftRight, padTopBottom, withDefAttr, translateBy, padBottom, (<=>))
+import Brick.Widgets.Core (str, clickable, padLeftRight, padTopBottom,
+ withDefAttr, translateBy, padBottom, (<=>), setAvailableSize,
+ padLeft, padRight, padTop, (<+>))
 import Brick.Types as T
 import Brick (AttrName, AttrMap, App(..), withBorderStyle,
  vBox, hBox, attrName, attrMap, withAttr,
- on)
+ on, hLimit, vLimit)
 import qualified Graphics.Vty.Attributes as V
 import Lens.Micro ((^.))
 import Lens.Micro.TH (makeLenses)
 
 
 drawUi :: Game -> [Widget Name]
-drawUi g = [drawGrid g, infoLayer g, buttonLayer g]
+drawUi g =  [(drawGrid g) <+> (buttonLayer g)]
 
 drawBoard :: [Widget ()]
 drawBoard = undefined
@@ -32,7 +34,8 @@ drawGrid g = withBorderStyle BS.unicodeBold
   $ vBox rows
   where
     rows         = [hBox $ cellsInRow r | r <- [1,2..boardHeight]]
-    cellsInRow x = [drawChess (getElem x y b) x y| y <- [1..boardWidth]]
+    cellsInRow x = case _over g of False -> [drawChess (getElem x y b) x y| y <- [1..boardWidth]]
+                                   True  -> [drawChessStop (getElem x y b) x y| y <- [1..boardWidth]]
     b = _board g
 
 drawChess :: Chess -> Int -> Int -> Widget Name
@@ -41,6 +44,11 @@ drawChess White x y =  clickable  (ChessCord (x,y)) $ withAttr whiteChessAttr $ 
 drawChess Empty x y =  clickable  (ChessCord (x,y)) $ withAttr emptyChessAttr $ padLeftRight 2 $ padTopBottom 1 $  nonKingWidge x y
 drawChess King  x y =  clickable  (ChessCord (x,y)) $ withAttr kingChessAttr  $ padLeftRight 2 $ padTopBottom 1 $  kingWidge
 
+drawChessStop :: Chess -> Int -> Int -> Widget Name
+drawChessStop Black x y =  withAttr blackChessAttr $ padLeftRight 2 $ padTopBottom 1 $  nonKingWidge x y
+drawChessStop White x y =  withAttr whiteChessAttr $ padLeftRight 2 $ padTopBottom 1 $  nonKingWidge x y
+drawChessStop Empty x y =  withAttr emptyChessAttr $ padLeftRight 2 $ padTopBottom 1 $  nonKingWidge x y
+drawChessStop King  x y =  withAttr kingChessAttr  $ padLeftRight 2 $ padTopBottom 1 $  kingWidge
 -- cordToName :: Int -> Int -> Name
 -- cordToName x y = show x ++ show y
 
@@ -48,20 +56,21 @@ buttonLayer :: Game -> Widget Name
 buttonLayer st =
     C.vCenterLayer $
       C.hCenterLayer (padBottom (T.Pad 1) $ str "Click a button:") <=>
-      C.hCenterLayer (vBox $ padTopBottom 1 <$> buttons) <=>
-      C.hCenterLayer (padTopBottom 1 $ str "Or enter text and then click in this editor:")
+      C.hCenterLayer (hBox $ padTopBottom 1 <$> buttons) <=>
+      C.hCenterLayer (infoBox st)
     where
         buttons = mkButton <$> buttonData
-        buttonData = [ (ButtonAI,    "   AI   ",        attrName "button1"),
+        buttonData = [ (ButtonAI,    "   AI  ",        attrName "button1"),
                        (ButtonRestart, "Restart"  , attrName "buttonRestart"),
-                       (ButtonExit,  " Exit "     , attrName "buttonExit")
+                       (ButtonExit,  " Exit  "     , attrName "buttonExit")
                      ]
         mkButton (name, label, attr) =
+               hLimit 18 $
                clickable name $
                withDefAttr attr $
                B.border $
                padLeftRight 4 $
-               padTopBottom 2 $ str label
+               padTopBottom 1 $ str label
 
 -- >>> chessName (1,1)
 -- "11"
@@ -72,7 +81,7 @@ theMap = attrMap V.defAttr
   , (whiteChessAttr, V.black `on` V.white)
   , (kingChessAttr,  V.blue  `on` V.white)
   , (emptyChessAttr, V.blue  `on` V.yellow)
-  , (attrName "info",      V.white `on` V.magenta)
+  , (attrName "info", V.white `on` V.magenta)
   ]
 
 
@@ -80,7 +89,7 @@ nonKingWidge :: Int -> Int -> Widget Name
 nonKingWidge x y = str $ show x ++ show y
 
 kingWidge :: Widget Name
-kingWidge = str "K"
+kingWidge = str "K "
 
 blackChessAttr, whiteChessAttr, emptyChessAttr, kingChessAttr :: AttrName
 blackChessAttr     = attrName "blackAttr"
@@ -89,6 +98,21 @@ emptyChessAttr     = attrName "emptyAttr"
 kingChessAttr      = attrName "kingChessAttr"
 
 
+infoBox :: Game -> Widget Name
+infoBox s =   
+            withBorderStyle BS.unicodeBold
+            $ B.borderWithLabel (str "Message Box")
+            $ hLimit 50 
+            $ vLimit 12 
+            $ padRight  T.Max 
+            $ padBottom T.Max 
+            $ padTop    T.Max  
+            $ padLeft   T.Max 
+            $ C.center 
+            $ str msg
+              where msg = case _info s of Nothing -> "nothing"
+                                          Just sth -> show sth
+
 infoLayer :: Game -> Widget Name
 infoLayer game = T.Widget T.Fixed T.Fixed $ do
     c <- T.getContext
@@ -96,6 +120,6 @@ infoLayer game = T.Widget T.Fixed T.Fixed $ do
         msg = case _info game of
                 Nothing -> "nothing"
                 Just sth -> show sth
-    T.render $ translateBy (T.Location (0, h-1)) $ clickable ButtonInfo $
+    T.render $ translateBy (T.Location (0, h-4)) $ clickable ButtonInfo $
                withDefAttr (attrName "info") $
                C.hCenter (str ("Last reported click: " <> msg))

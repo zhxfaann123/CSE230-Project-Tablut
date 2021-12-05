@@ -39,16 +39,16 @@ drawGrid g = withBorderStyle BS.unicodeBold
     b = _board g
 
 drawChess :: Chess -> Int -> Int -> Widget Name
-drawChess Black x y =  clickable  (ChessCord (x,y)) $ withAttr blackChessAttr $ padLeftRight 2 $ padTopBottom 1 $  nonKingWidge x y
-drawChess White x y =  clickable  (ChessCord (x,y)) $ withAttr whiteChessAttr $ padLeftRight 2 $ padTopBottom 1 $  nonKingWidge x y
-drawChess Empty x y =  clickable  (ChessCord (x,y)) $ withAttr emptyChessAttr $ padLeftRight 2 $ padTopBottom 1 $  nonKingWidge x y
-drawChess King  x y =  clickable  (ChessCord (x,y)) $ withAttr kingChessAttr  $ padLeftRight 2 $ padTopBottom 1 $  kingWidge
+drawChess Black x y =  withBorderStyle BS.unicodeRounded $ B.border $ clickable  (ChessCord (x,y)) $ withAttr blackChessAttr $ padLeftRight 2 $ padTopBottom 1 $  nonKingWidge x y
+drawChess White x y =  withBorderStyle BS.unicodeRounded $ B.border $ clickable  (ChessCord (x,y)) $ withAttr whiteChessAttr $ padLeftRight 2 $ padTopBottom 1 $  nonKingWidge x y
+drawChess Empty x y =  withBorderStyle BS.unicodeRounded $ B.border $ clickable  (ChessCord (x,y)) $ withAttr emptyChessAttr $ padLeftRight 2 $ padTopBottom 1 $  nonKingWidge x y
+drawChess King  x y =  withBorderStyle BS.unicodeRounded $ B.border $ clickable  (ChessCord (x,y)) $ withAttr kingChessAttr  $ padLeftRight 2 $ padTopBottom 1 $  kingWidge
 
 drawChessStop :: Chess -> Int -> Int -> Widget Name
-drawChessStop Black x y =  withAttr blackChessAttr $ padLeftRight 2 $ padTopBottom 1 $  nonKingWidge x y
-drawChessStop White x y =  withAttr whiteChessAttr $ padLeftRight 2 $ padTopBottom 1 $  nonKingWidge x y
-drawChessStop Empty x y =  withAttr emptyChessAttr $ padLeftRight 2 $ padTopBottom 1 $  nonKingWidge x y
-drawChessStop King  x y =  withAttr kingChessAttr  $ padLeftRight 2 $ padTopBottom 1 $  kingWidge
+drawChessStop Black x y =  B.border $ withAttr blackChessAttr $ padLeftRight 2 $ padTopBottom 1 $  nonKingWidge x y
+drawChessStop White x y =  B.border $ withAttr whiteChessAttr $ padLeftRight 2 $ padTopBottom 1 $  nonKingWidge x y
+drawChessStop Empty x y =  B.border $ withAttr emptyChessAttr $ padLeftRight 2 $ padTopBottom 1 $  nonKingWidge x y
+drawChessStop King  x y =  B.border $ withAttr kingChessAttr  $ padLeftRight 2 $ padTopBottom 1 $  kingWidge
 -- cordToName :: Int -> Int -> Name
 -- cordToName x y = show x ++ show y
 
@@ -78,15 +78,21 @@ buttonLayer st =
 theMap :: AttrMap
 theMap = attrMap V.defAttr
   [ (blackChessAttr, V.white `on` V.black)
-  , (whiteChessAttr, V.black `on` V.white)
-  , (kingChessAttr,  V.blue  `on` V.white)
-  , (emptyChessAttr, V.blue  `on` V.yellow)
+  , (whiteChessAttr, V.black `on` whiteColor)
+  , (kingChessAttr,  V.blue  `on` whiteColor)
+  , (emptyChessAttr, V.blue  `on` emptyColor)
   , (attrName "info", V.white `on` V.magenta)
   ]
 
+whiteColor :: V.Color
+whiteColor = V.rgbColor 255 255 255
+
+emptyColor :: V.Color
+emptyColor = V.rgbColor 255 153 51
 
 nonKingWidge :: Int -> Int -> Widget Name
-nonKingWidge x y = str $ show x ++ show y
+-- nonKingWidge x y = str $ show x ++ show y
+nonKingWidge _ _ = str "  "
 
 kingWidge :: Widget Name
 kingWidge = str "K "

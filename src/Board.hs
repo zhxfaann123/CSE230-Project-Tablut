@@ -168,10 +168,11 @@ getMoveDirection ((from_x, from_y), (to_x, to_y)) = if      from_x == to_x && fr
 isOver :: Board -> Over
 isOver b = if      kingCaptured then (True, P_Black)
            else if kingEscaped  then (True, P_White)
+           else if blackAllDied then (True, P_White)
            else    (False, P_Black)
        where kingCaptured = not $ foldr (||) False $ (==King) <$> toList b
              kingEscaped  = foldr (||) False $ (==King) <$> boardEdge b
-
+             blackAllDied = foldr (&&) True  $ (==Black) <$> toList b
 -- get all chesses that lie on the edge of the board (to check if the king escaped)
 boardEdge :: Board -> [Chess]
 boardEdge b = r1 ++ r9 ++ c1 ++ c9

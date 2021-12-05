@@ -26,3 +26,7 @@ chessOfTurn s c = if _turn s == P_White && (chess == White || chess == King) the
                   else False
                   where chess = getChessFromGame s c
 
+chessToPlayer :: Chess -> Player
+chessToPlayer Empty  = error "nonono"
+chessToPlayer Black  = P_Black
+chessToPlayer White  = P_White 

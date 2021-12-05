@@ -16,18 +16,6 @@ data Game = Game
     , _info      :: Maybe String
     }
 
--- >>> ('x','y') ^. _1
--- <interactive>:3398:15-16: error:
---     • Found hole: _1 :: Lens.Micro.Type.Getting a (Char, Char) a
---       Where: ‘a’ is a rigid type variable bound by
---                the inferred type of it :: a
---                at <interactive>:3398:2-16
---       Or perhaps ‘_1’ is mis-spelled, or not in scope
---     • In the second argument of ‘(^.)’, namely ‘_1’
---       In the expression: ('x', 'y') ^. _1
---       In an equation for ‘it’: it = ('x', 'y') ^. _1
---     • Relevant bindings include it :: a (bound at <interactive>:3398:2)
---
 
 --  The coordinate of the board, starting from 1(left-most/bottom).  
 type Cord = (Int, Int)
